@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Quiz from "@/components/Quiz";
 import { getQuizzes, convertApiQuestion } from "@/services/quizApi";
-import { useSearchParams } from "next/navigation";
-import { Link } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function QuizPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const category = searchParams.get("category");
   const difficulty = searchParams.get("difficulty");
 
@@ -17,21 +17,25 @@ export default function QuizPage() {
 
   useEffect(() => {
     async function loadQuestions() {
-      if (category && difficulty) {
-        try {
-          const apiQuestions = await getQuizzes(
-            category as string,
-            difficulty as string,
-            10
-          );
-          const formattedQuestions = apiQuestions.map(convertApiQuestion);
-          setQuestions(formattedQuestions);
-        } catch (e) {
-          console.error("Error loading quiz questions:", e);
-          setError("Failed to load quiz questions");
-        } finally {
-          setLoading(false);
-        }
+      if (!category || !difficulty) {
+        setError("Category or difficulty is missing.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const apiQuestions = await getQuizzes(
+          category as string,
+          difficulty as string,
+          10
+        );
+        const formattedQuestions = apiQuestions.map(convertApiQuestion);
+        setQuestions(formattedQuestions);
+      } catch (e) {
+        console.error("Error loading quiz questions:", e);
+        setError("Failed to load quiz questions");
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -51,12 +55,12 @@ export default function QuizPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 text-xl mb-4">{error}</p>
-          <Link
-            href="/"
+          <button
+            onClick={() => router.push("/")}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Return Home
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -67,22 +71,24 @@ export default function QuizPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 text-xl mb-4">No questions available</p>
-          <Link
-            href="/"
+          <button
+            onClick={() => router.push("/")}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             Return Home
-          </Link>
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <Quiz
-      questions={questions}
-      category={category as string}
-      difficulty={difficulty as string}
-    />
+    <Suspense fallback={<div>Loading Quiz...</div>}>
+      <Quiz
+        questions={questions}
+        category={category as string}
+        difficulty={difficulty as string}
+      />
+    </Suspense>
   );
 }

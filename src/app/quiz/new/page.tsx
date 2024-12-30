@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Quiz from "@/components/Quiz";
 import { getQuizzes, convertApiQuestion } from "@/services/quizApi";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -79,10 +79,12 @@ export default function QuizPage() {
   }
 
   return (
-    <Quiz
-      questions={questions}
-      category={category as string}
-      difficulty={difficulty as string}
-    />
+    <Suspense fallback={<div>Loading Quiz...</div>}>
+      <Quiz
+        questions={questions}
+        category={category as string}
+        difficulty={difficulty as string}
+      />
+    </Suspense>
   );
 }
