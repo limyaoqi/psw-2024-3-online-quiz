@@ -5,7 +5,7 @@ import Quiz from "@/components/Quiz";
 import { getQuizzes, convertApiQuestion } from "@/services/quizApi";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function QuizPage() {
+function QuizContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const category = searchParams.get("category");
@@ -17,21 +17,25 @@ export default function QuizPage() {
 
   useEffect(() => {
     async function loadQuestions() {
-      if (category && difficulty) {
-        try {
-          const apiQuestions = await getQuizzes(
-            category as string,
-            difficulty as string,
-            10
-          );
-          const formattedQuestions = apiQuestions.map(convertApiQuestion);
-          setQuestions(formattedQuestions);
-        } catch (e) {
-          console.error("Error loading quiz questions:", e);
-          setError("Failed to load quiz questions");
-        } finally {
-          setLoading(false);
-        }
+      if (!category || !difficulty) {
+        setError("Category or difficulty is missing.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const apiQuestions = await getQuizzes(
+          category as string,
+          difficulty as string,
+          10
+        );
+        const formattedQuestions = apiQuestions.map(convertApiQuestion);
+        setQuestions(formattedQuestions);
+      } catch (e) {
+        console.error("Error loading quiz questions:", e);
+        setError("Failed to load quiz questions.");
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -79,12 +83,24 @@ export default function QuizPage() {
   }
 
   return (
-    <Suspense fallback={<div>Loading Quiz...</div>}>
-      <Quiz
-        questions={questions}
-        category={category as string}
-        difficulty={difficulty as string}
-      />
+    <Quiz
+      questions={questions}
+      category={category as string}
+      difficulty={difficulty as string}
+    />
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      }
+    >
+      <QuizContent />
     </Suspense>
   );
 }
