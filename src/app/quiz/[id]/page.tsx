@@ -1,0 +1,88 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Quiz from "@/components/Quiz";
+import { getQuizzes, convertApiQuestion } from "@/services/quizApi";
+import { useSearchParams } from "next/navigation";
+import { Link } from "lucide-react";
+
+export default function QuizPage() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category");
+  const difficulty = searchParams.get("difficulty");
+
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function loadQuestions() {
+      if (category && difficulty) {
+        try {
+          const apiQuestions = await getQuizzes(
+            category as string,
+            difficulty as string,
+            10
+          );
+          const formattedQuestions = apiQuestions.map(convertApiQuestion);
+          setQuestions(formattedQuestions);
+        } catch (e) {
+          console.error("Error loading quiz questions:", e);
+          setError("Failed to load quiz questions");
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadQuestions();
+  }, [category, difficulty]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 text-xl mb-4">{error}</p>
+          <Link
+            href="/"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Return Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!questions.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 text-xl mb-4">No questions available</p>
+          <Link
+            href="/"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Return Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Quiz
+      questions={questions}
+      category={category as string}
+      difficulty={difficulty as string}
+    />
+  );
+}
