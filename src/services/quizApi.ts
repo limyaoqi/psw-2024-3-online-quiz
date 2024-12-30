@@ -56,11 +56,11 @@ export interface QuizApiQuestion {
   // Helper function to convert API response to our format
   export function convertApiQuestion(apiQuestion: QuizApiQuestion) {
     const options = Object.entries(apiQuestion.answers)
-      .filter(([_, value]) => value !== null)
-      .map(([_, value]) => value as string);
+      .filter(([_unused, value]) => value !== null)
+      .map(([_unused, value]) => value as string);
   
     const correctAnswerIndex = Object.entries(apiQuestion.correct_answers)
-      .findIndex(([key, value]) => value === 'true');
+      .findIndex(([_unused, value]) => value === 'true');
   
     return {
       id: apiQuestion.id,
@@ -69,6 +69,7 @@ export interface QuizApiQuestion {
       correctAnswer: correctAnswerIndex,
       category: apiQuestion.category,
       difficulty: apiQuestion.difficulty,
-      tags: apiQuestion.tags
+      tags: apiQuestion.tags,
     };
   }
+  
