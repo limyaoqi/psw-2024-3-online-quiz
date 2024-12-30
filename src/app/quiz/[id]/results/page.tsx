@@ -1,12 +1,12 @@
 "use client";
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Results from '@/components/Results';
-import { Question } from '@/types/quiz';
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Results from "@/components/Results";
+import { Question } from "@/types/quiz";
 
 interface ResultsData {
-  questions: Question[]; // Replace with your actual type
+  questions: Question[];
   answers: number[];
 }
 
@@ -16,15 +16,18 @@ export default function ResultsPage() {
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
 
   useEffect(() => {
-    const results = searchParams.get('results');
-    if (results) {
-      try {
-        const parsedResults: ResultsData = JSON.parse(results);
-        setResultsData(parsedResults);
-      } catch (error) {
-        console.error('Failed to parse results:', error);
-        router.push('/');
-      }
+    const results = searchParams.get("results");
+    if (!results) {
+      router.push("/");
+      return;
+    }
+
+    try {
+      const parsedResults: ResultsData = JSON.parse(results);
+      setResultsData(parsedResults);
+    } catch (error) {
+      console.error("Failed to parse results:", error);
+      router.push("/");
     }
   }, [searchParams, router]);
 
